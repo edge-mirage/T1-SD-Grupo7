@@ -7,8 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	"github.com/T1-SD-Grupo7/database"
-	"github.com/T1-SD-Grupo7/model"
+	"github.com/T1-SD/internal/database"
+	"github.com/T1-SD/internal/model"
 )
 
 func GetClients(c *gin.Context) {
