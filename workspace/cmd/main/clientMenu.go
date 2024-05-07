@@ -10,15 +10,19 @@ import (
 )
 
 func ClientMainMenu() {
+	menu_clients := `
+	------------ Menú clientes ------------
+	1) Listar los clientes registrados
+	2) Obtener un cliente por ID
+	3) Obtener un cliente por RUT
+	4) Registrar un nuevo cliente
+	5) Actualizar datos de un cliente
+	6) Borrar un cliente por ID
+	7) Volver
+	`
+
 	for {
-		fmt.Println("\nMenú clientes")
-		fmt.Println("1) Listar los clientes registrados")
-		fmt.Println("2) Obtener un cliente por ID")
-		fmt.Println("3) Obtener un cliente por RUT")
-		fmt.Println("4) Registrar un nuevo cliente")
-		fmt.Println("5) Actualizar datos de un cliente")
-		fmt.Println("6) Borrar un cliente por ID")
-		fmt.Println("7) Volver")
+		fmt.Println(menu_clients)
 
 		option := ReadOption()
 		switch option {
