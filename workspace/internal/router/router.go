@@ -22,5 +22,9 @@ func SetupRouter() *gin.Engine {
 	r.PUT("/api/users/:id", handler.UpdateUserById)
 	r.DELETE("/api/users/:id", handler.DeleteUserById)
 
+	r.POST("/api/token", handler.CreateToken)
+	r.GET("/api/token", handler.GetToken)
+	r.DELETE("/api/token", handler.DeleteAllTokens)
+
 	return r
 }

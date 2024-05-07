@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -36,6 +37,13 @@ correspondientes al menú.
 		log.Fatal("Error loading .env file")
 	}
 
+	token, err := ObtainToken()
+	if err != nil {
+		fmt.Println("Error al obtener el token:", err)
+		return
+	}
+	PostToken(token)
+
 	for {
 		option := MainMenu(menu)
 		switch option {
@@ -45,6 +53,7 @@ correspondientes al menú.
 			register()
 		case 3:
 			fmt.Println("\n¡Vuelve pronto!")
+			DeleteToken()
 			return
 		default:
 			fmt.Println("\nOpción no válida. Por favor, intenta de nuevo.")
@@ -155,8 +164,75 @@ func UserMainMenu(menu_loged string) {
 }
 
 func ReadOption() int {
-	fmt.Print("\n")
 	var option int
 	fmt.Scan(&option)
 	return option
+}
+
+func ObtainToken() (string, error) {
+	requestBody := map[string]string{"public_key": os.Getenv("PUBLIC_KEY")}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := http.Post("https://api.ilovepdf.com/v1/auth", "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var response map[string]string
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return "", err
+	}
+
+	token, ok := response["token"]
+	if !ok {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func PostToken(token string) {
+
+	requestBody, err := json.Marshal(map[string]interface{}{
+		"Token": token,
+	})
+	if err != nil {
+		fmt.Println("Error al crear el cuerpo JSON:", err)
+	}
+
+	resp, err := http.Post(os.Getenv("HOST")+":"+os.Getenv("PORT")+"/api/token", "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		fmt.Println("Error al hacer la solicitud POST:", err)
+		return
+	}
+	defer resp.Body.Close()
+}
+
+func DeleteToken() {
+	req, err := http.NewRequest("DELETE", os.Getenv("HOST")+":"+os.Getenv("PORT")+"/api/token", nil)
+	if err != nil {
+		fmt.Println("Error al crear la solicitud DELETE:", err)
+		return
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Println("Error al hacer la solicitud DELETE:", err)
+		return
+	}
+	defer resp.Body.Close()
 }

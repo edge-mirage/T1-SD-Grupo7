@@ -12,6 +12,7 @@ var (
 	client  *mongo.Client
 	Clients *mongo.Collection
 	Users   *mongo.Collection
+	Token   *mongo.Collection
 )
 
 func Init(uri string, database string) error {
@@ -26,6 +27,7 @@ func Init(uri string, database string) error {
 
 	Clients = client.Database(database).Collection("clients")
 	Users = client.Database(database).Collection("users")
+	Token = client.Database(database).Collection("token")
 
 	err = client.Database("admin").RunCommand(context.TODO(), bson.D{{Key: "ping", Value: 1}}).Err()
 	return err
