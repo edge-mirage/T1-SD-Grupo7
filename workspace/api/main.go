@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"io/ioutil"
 )
 
 func main(){
@@ -136,25 +137,32 @@ func clientsMenu(){
 
 	switch opcion{
 	case "1"://list client
-		rawJSON , err := http.Get("http://127.0.0.1:5000/api/clients")
+		resp, err := http.Get("http://127.0.0.1:5000/api/clients")
 		if err != nil {
-			fmt.Println("Error al hacer la solicitud POST:", err)
-			os.Exit(0)
+			fmt.Println("Error al hacer la solicitud GET:", err)
+			os.Exit(1)
 		}
-		defer rawJSON.Body.Close()
+		defer resp.Body.Close()
 
-		// Unmarsheling every JSON
-		for _, rawJSON := range rawJSONs {
-			var data map[string]string
-			if err := json.Unmarshal([]byte(rawJSON), &data); err != nil {
-				fmt.Println("Error al decodificar JSON:", err)
-				continue
-			}
+		// Leer la respuesta
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println("Error al leer la respuesta:", err)
+			os.Exit(1)
+		}
 
-			// Imprimir los campos formateados
+		// Decodificar el JSON
+		var data []map[string]interface{}
+		if err := json.Unmarshal(body, &data); err != nil {
+			fmt.Println("Error al decodificar el JSON:", err)
+			os.Exit(1)
+		}
+
+		// Imprimir los campos de cada JSON
+		for _, item := range data {
 			fmt.Println("---")
-			for key, value := range data {
-				fmt.Printf("%s: %s\n", key, value)
+			for key, value := range item {
+				fmt.Printf("%s: %v\n", key, value)
 			}
 			fmt.Println("---")
 		}
@@ -247,30 +255,6 @@ func registUser(name string, lastname string, rut string, email string, passwd s
 }
 
 func registClient(name string, lastname string, rut string, email string) int{
-	//getting the users
-	rawJSON , err := http.Get("http://127.0.0.1:5000/api/clients")
-		if err != nil {
-			fmt.Println("Error al hacer la solicitud POST:", err)
-			os.Exit(0)
-		}
-		defer rawJSON.Body.Close()
-
-		// Unmarsheling every JSON
-		for _, rawJSON := range rawJSONs {
-			var data map[string]string
-			if err := json.Unmarshal([]byte(rawJSON), &data); err != nil {
-				fmt.Println("Error al decodificar JSON:", err)
-				continue
-			}
-
-			// Imprimir los campos formateados
-			fmt.Println("---")
-			for key, value := range data {
-				fmt.Printf("%s: %s\n", key, value)
-			}
-			fmt.Println("---")
-		}
-
 	//creating the query
 	requestBody, err := json.Marshal(map[string]string{
 		"name":name,
@@ -298,7 +282,6 @@ func registClient(name string, lastname string, rut string, email string) int{
 	fmt.Printf("Apellido: %s\n", lastname)
 	fmt.Printf("RUT: %s\n", rut)
 	fmt.Printf("Correo: %s\n", email)
-	fmt.Printf("Contraseña: %s\n", passwd)
 	
 	// return code
 	if resp.Status == "201 Created" {
