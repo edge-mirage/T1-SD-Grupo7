@@ -12,5 +12,5 @@ https://www.youtube.com/watch?v=LQ9tJb7Qvww
 
 ## To run the program
 you must go to workspace through the terminal and enter the following commands in different terminals
-- go run ./cmd/api
-- go run ./cmd/main
+- go run ./api
+- go run ./main
