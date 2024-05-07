@@ -34,6 +34,21 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	// verifying mail
+    existingUserByEmail := database.Users.FindOne(c, bson.D{{Key: "email", Value: body.Email}})
+    if existingUserByEmail.Err() == nil {
+        c.JSON(400, gin.H{"error": "El correo electrónico ya está en uso"})
+        return
+    }
+
+    // verifying rut
+    existingUserByRut := database.Users.FindOne(c, bson.D{{Key: "rut", Value: body.Rut}})
+    if existingUserByRut.Err() == nil {
+        c.JSON(400, gin.H{"error": "El RUT ya está en uso"})
+        return
+    }
+
+
 	res, err := database.Users.InsertOne(c, body)
 	if err != nil {
 		c.JSON(500, gin.H{"unable to insert user": err.Error()})
