@@ -34,7 +34,11 @@ func ClientMainMenu() {
 			fmt.Scan(&id)
 			getClientByID(id)
 		case 3:
-			fmt.Println("\nObtener cliente por RUT no implementado.")
+			fmt.Print("\nIngrese el RUT a buscar: ")
+			var rut string
+			fmt.Scan(&rut)
+			getClientByRUT(rut)
+			//fmt.Println("\nObtener cliente por RUT no implementado.")
 		case 4:
 			createClient()
 		case 5:
@@ -79,6 +83,27 @@ func getAllClients() {
 
 func getClientByID(id string) {
 	resp, err := http.Get(os.Getenv("HOST") + ":" + os.Getenv("PORT") + "/api/clients/" + id)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		panic("Error al obtener el cliente")
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("\n---")
+	fmt.Println(string(body))
+	fmt.Println("---")
+}
+
+func getClientByRUT(rut string) {
+	resp, err := http.Get(os.Getenv("HOST") + ":" + os.Getenv("PORT") + "/api/clients/" + rut)
 	if err != nil {
 		panic(err)
 	}
