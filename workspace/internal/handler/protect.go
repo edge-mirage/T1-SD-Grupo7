@@ -24,6 +24,17 @@ func ProtectFile(c *gin.Context) {
 		return
 	}
 
+	server, task, err := services.Start(token)
+	if err != nil {
+		fmt.Println("Error en el servicio Start:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Start"})
+		return
+	}
+
+	fmt.Println("server:", server)
+	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	fmt.Println("task:", task)
+
 	clientID := c.PostForm("id")
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
@@ -43,7 +54,7 @@ func ProtectFile(c *gin.Context) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	part, err := writer.CreateFormFile("file", fileHeader.Filename)
+	part, err := writer.CreateFormFile("task", task)
 	if err != nil {
 		fmt.Println("Error creando el form-data:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creando el form-data"})
@@ -63,19 +74,7 @@ func ProtectFile(c *gin.Context) {
 	fmt.Println("id:", clientID)
 	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA/nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
-	//fmt.Println("body:", body)
-	server, task, err := services.Start(token)
-	if err != nil {
-		fmt.Println("Error en el servicio Start:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Start"})
-		return
-	}
-
-	fmt.Println("server:", server)
-	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA/nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-	fmt.Println("task:", task)
-
-	server_filename, err := services.Upload(token, server, task, file, fileHeader.Filename)
+	server_filename, err := services.Upload(token, server, body)
 	if err != nil {
 		fmt.Println("Error en el servicio Upload:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Upload"})
