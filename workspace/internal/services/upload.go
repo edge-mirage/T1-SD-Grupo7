@@ -12,8 +12,8 @@ type UploadResponse struct {
 	Server_filename string `bson:"server_filename" json:"server_filename"`
 }
 
-func Upload(token string, server string, body *bytes.Buffer) (string, error) {
-	iLovePDFEndpoint := "https://" + server + "/v1/start/upload"
+func Upload(token string, server string, body *bytes.Buffer, contentType string) (string, error) {
+	iLovePDFEndpoint := "https://" + server + "/v1/upload"
 
 	req, err := http.NewRequest("POST", iLovePDFEndpoint, body)
 
@@ -22,6 +22,7 @@ func Upload(token string, server string, body *bytes.Buffer) (string, error) {
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", contentType)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

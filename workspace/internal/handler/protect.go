@@ -54,27 +54,31 @@ func ProtectFile(c *gin.Context) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	part, err := writer.CreateFormFile("task", task)
+	_ = writer.WriteField("task", task)
+
+	part, err := writer.CreateFormFile("file", fileHeader.Filename)
 	if err != nil {
-		fmt.Println("Error creando el form-data:", err)
+		fmt.Println("Error creando el form-data para el archivo:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creando el form-data"})
 		return
 	}
 
-	if _, err = io.Copy(part, file); err != nil {
+	_, err = io.Copy(part, file)
+	if err != nil {
 		fmt.Println("Error al copiar el archivo:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al copiar el archivo"})
 		return
 	}
 
 	writer.Close()
+	reqContentType := writer.FormDataContentType()
 
 	fmt.Println("token:", token)
 	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA/nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 	fmt.Println("id:", clientID)
 	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA/nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
-	server_filename, err := services.Upload(token, server, body)
+	server_filename, err := services.Upload(token, server, body, reqContentType)
 	if err != nil {
 		fmt.Println("Error en el servicio Upload:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Upload"})
@@ -85,24 +89,19 @@ func ProtectFile(c *gin.Context) {
 	fmt.Println("fileHeader.Filename:", fileHeader.Filename)
 	fmt.Println("server_filename:", server_filename)
 
-	/*
-		err = services.Protect(token, server, task, server_filename, fileHeader.Filename, clientID)
-		if err != nil {
-			fmt.Println("Error en el servicio Protect:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Protect"})
-			return
-		}
-	*/
+	err = services.Protect(token, server, task, server_filename, fileHeader.Filename, clientID)
+	if err != nil {
+		fmt.Println("Error en el servicio Protect:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Protect"})
+		return
+	}
 
-	/*
-		err = services.Download(token, server, task)
-		if err != nil {
-			fmt.Println("Error en el servicio Download:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Download"})
-			return
-		}
-	*/
-	c.JSON(http.StatusAccepted, gin.H{"message": "pdf protected successfully"})
+	err = services.Download(token, server, task)
+	if err != nil {
+		fmt.Println("Error en el servicio Download:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Download"})
+		return
+	}
 
 	err = services.Delete(token, server, task, server_filename)
 	if err != nil {
@@ -110,6 +109,8 @@ func ProtectFile(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Delete"})
 		return
 	}
+
+	c.JSON(http.StatusAccepted, gin.H{"message": "pdf protected successfully"})
 }
 
 func GetTokenString() (string, error) {
