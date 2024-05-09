@@ -26,5 +26,7 @@ func SetupRouter() *gin.Engine {
 	r.GET("/api/token", handler.GetToken)
 	r.DELETE("/api/token", handler.DeleteAllTokens)
 
+	r.POST("/api/protect", handler.ProtectFile)
+
 	return r
 }

@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 )
@@ -235,4 +237,67 @@ func DeleteToken() {
 		return
 	}
 	defer resp.Body.Close()
+}
+
+func protectFile() {
+	fmt.Print("Escriba el ID del cliente objetivo: ")
+	var clientID string
+	fmt.Scan(&clientID)
+
+	fmt.Print("\nEscriba la ruta donde se encuentra el archivo (incluya el nombre): ")
+	var filePath string
+	fmt.Scan(&filePath)
+
+	var buf bytes.Buffer
+	writer := multipart.NewWriter(&buf)
+
+	err := writer.WriteField("id", clientID)
+	if err != nil {
+		fmt.Println("Error al escribir el campo 'id':", err)
+		return
+	}
+
+	part, err := writer.CreateFormFile("file", filepath.Base(filePath))
+	if err != nil {
+		fmt.Println("Error al crear parte para el archivo:", err)
+		return
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		fmt.Println("Error al abrir el archivo:", err)
+		return
+	}
+	defer file.Close()
+
+	_, err = io.Copy(part, file)
+	if err != nil {
+		fmt.Println("Error al copiar el archivo:", err)
+		return
+	}
+
+	writer.Close()
+
+	url := os.Getenv("HOST") + ":" + os.Getenv("PORT") + "/api/protect"
+	req, err := http.NewRequest("POST", url, &buf)
+	if err != nil {
+		fmt.Println("Error al crear la solicitud POST:", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error al enviar la solicitud POST:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 202 {
+		fmt.Printf("Error: %d\n", resp.StatusCode)
+	} else {
+		fmt.Println("¡Protección exitosa!")
+	}
 }
