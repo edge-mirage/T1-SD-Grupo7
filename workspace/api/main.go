@@ -15,13 +15,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	//CAMBIAR EL NOMBRE DE LA BASE DE DATOS
-	//CAMBIAR EL NOMBRE DE LA BASE DE DATOS
-	//CAMBIAR EL NOMBRE DE LA BASE DE DATOS
-	err := database.Init(os.Getenv("MONGODB_URI"), "cluster0")
-	//CAMBIAR EL NOMBRE DE LA BASE DE DATOS
-	//CAMBIAR EL NOMBRE DE LA BASE DE DATOS
-	//CAMBIAR EL NOMBRE DE LA BASE DE DATOS
+	err := database.Init(os.Getenv("MONGODB_URI"), os.Getenv("DB_NAME"))
 
 	if err != nil {
 		fmt.Println(err)
