@@ -240,11 +240,11 @@ func DeleteToken() {
 }
 
 func protectFile() {
-	fmt.Print("Escriba el ID del cliente objetivo: ")
+	fmt.Println("\nEscriba el ID del cliente objetivo: ")
 	var clientID string
 	fmt.Scan(&clientID)
 
-	fmt.Print("\nEscriba la ruta donde se encuentra el archivo (incluya el nombre): ")
+	fmt.Println("\nEscriba la ruta donde se encuentra el archivo (incluya el nombre): ")
 	var filePath string
 	fmt.Scan(&filePath)
 

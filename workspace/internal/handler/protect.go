@@ -32,10 +32,6 @@ func ProtectFile(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("server:", server)
-	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-	fmt.Println("task:", task)
-
 	clientID := c.PostForm("id")
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
@@ -74,21 +70,12 @@ func ProtectFile(c *gin.Context) {
 	writer.Close()
 	reqContentType := writer.FormDataContentType()
 
-	fmt.Println("token:", token)
-	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA/nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-	fmt.Println("id:", clientID)
-	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA/nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-
 	server_filename, err := services.Upload(token, server, body, reqContentType)
 	if err != nil {
 		fmt.Println("Error en el servicio Upload:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Upload"})
 		return
 	}
-
-	fmt.Println("\nCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\nCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\nCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
-	fmt.Println("fileHeader.Filename:", fileHeader.Filename)
-	fmt.Println("server_filename:", server_filename)
 
 	err = services.Protect(token, server, task, server_filename, fileHeader.Filename, clientID)
 	if err != nil {
@@ -104,12 +91,8 @@ func ProtectFile(c *gin.Context) {
 		return
 	}
 
-	fmt.Print("\n\nAAAAAAA\ndownloaded_body: ")
-	fmt.Println(downloaded_body)
-	fmt.Print("AAAAAAAA\n\n")
-
 	filename := fileHeader.Filename + "_protected.pdf"
-	outputDir := "/pdfs"
+	outputDir := "pdfs/"
 	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
 		err = os.MkdirAll(outputDir, os.ModePerm)
 		if err != nil {
@@ -124,13 +107,6 @@ func ProtectFile(c *gin.Context) {
 	if err != nil {
 		fmt.Println("Error guardando el archivo descargado:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error guardando el archivo descargado"})
-		return
-	}
-
-	err = services.Delete(token, server, task, server_filename)
-	if err != nil {
-		fmt.Println("Error en el servicio Delete:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Delete"})
 		return
 	}
 
