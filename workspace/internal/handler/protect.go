@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 
@@ -96,10 +97,33 @@ func ProtectFile(c *gin.Context) {
 		return
 	}
 
-	err = services.Download(token, server, task)
+	downloaded_body, err := services.Download(token, server, task)
 	if err != nil {
 		fmt.Println("Error en el servicio Download:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error en el servicio Download"})
+		return
+	}
+
+	fmt.Print("\n\nAAAAAAA\ndownloaded_body: ")
+	fmt.Println(downloaded_body)
+	fmt.Print("AAAAAAAA\n\n")
+
+	filename := fileHeader.Filename + "_protected.pdf"
+	outputDir := "/pdfs"
+	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
+		err = os.MkdirAll(outputDir, os.ModePerm)
+		if err != nil {
+			fmt.Println("Error creando el directorio:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creando el directorio"})
+			return
+		}
+	}
+
+	filePath := filepath.Join(outputDir, filename)
+	err = os.WriteFile(filePath, downloaded_body, 0644)
+	if err != nil {
+		fmt.Println("Error guardando el archivo descargado:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error guardando el archivo descargado"})
 		return
 	}
 
